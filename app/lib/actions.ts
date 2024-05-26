@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { sql } from '@vercel/postgres';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 const FormSchema = z.object({
   id: z.string(),
@@ -24,5 +26,9 @@ export async function createInvoice(formData: FormData) {
   await sql`
     INSERT INTO invoices (customer_id, amount, status, date)
     VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
-  `
+  `;
+
+  revalidatePath('/dashboard/invoices'); // Once the database has been updated the '/dashboard/invoices' path will be revalidated & fresh data will be fetched from the server
+
+  redirect('/dashboard/invoices'); // Also, re-direct the user back to the '/dashboard/invoices' page
 }
